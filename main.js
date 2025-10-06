@@ -22,6 +22,7 @@ async function initWeb3() {
 }
 
 // Anomaly Log Functions
+// Anomaly Log Functions
 async function fetchAnomalies() {
     const loading = document.getElementById('anomalyLoading');
     const list = document.getElementById('anomalyList');
@@ -35,8 +36,20 @@ async function fetchAnomalies() {
     noAnomalies.classList.add('d-none');
 
     try {
-        const response = await fetch(`${RPI_BASE_URL}/api/rpi/history`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const response = await fetch(`${RPI_BASE_URL}/api/rpi/history`, {
+            headers: {
+                'ngrok-skip-browser-warning': 'true'  // Bypass ngrok warning
+            }
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        
+        // Check if response is HTML (error fallback)
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            throw new Error(`Invalid response (HTML detected): ${text.substring(0, 100)}...`);
+        }
+        
         const data = await response.json();
         if (!data.success) throw new Error(data.error || 'Unknown error');
 
@@ -68,11 +81,11 @@ async function fetchAnomalies() {
     } catch (err) {
         errorMsg.textContent = `Failed to fetch anomalies: ${err.message}`;
         error.classList.remove('d-none');
+        console.error('Fetch error:', err);  // For debugging
     } finally {
         loading.classList.add('d-none');
     }
 }
-
 // Live Video Feed Functions
 function setupLiveFeed() {
     const video = document.getElementById('liveVideo');
