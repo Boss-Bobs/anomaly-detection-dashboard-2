@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anomaly Detection Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <header class="text-center mb-5">
+            <h1 class="display-4 fw-bold text-primary mb-3">
+                <i class="fas fa-bug me-2"></i>Anomaly Detection Dashboard
+            </h1>
+            <p class="lead text-muted">Live V380 Camera Feed with 3DCAE Detection & Sepolia Blockchain Logging</p>
+        </header>
+
+        <ul class="nav nav-tabs justify-content-center mb-4" id="dashboardTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="anomaly-log-tab" data-bs-toggle="tab" data-bs-target="#anomaly-log" type="button" role="tab">
+                    <i class="fas fa-list me-1"></i>Anomaly Log
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="live-feed-tab" data-bs-toggle="tab" data-bs-target="#live-feed" type="button" role="tab">
+                    <i class="fas fa-video me-1"></i>Live Video Feed (RPi)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="blockchain-logs-tab" data-bs-toggle="tab" data-bs-target="#blockchain-logs" type="button" role="tab">
+                    <i class="fas fa-blockchain me-1"></i>Blockchain Logs
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="dashboardTabContent">
+            <!-- Anomaly Log Tab -->
+            <div class="tab-pane fade show active" id="anomaly-log" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3><i class="fas fa-history me-2 text-warning"></i>Recent Anomalies</h3>
+                    <button id="refreshAnomaly" class="btn btn-outline-primary">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                </div>
+                <div id="anomalyLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Fetching anomalies from RPi...</p>
+                </div>
+                <div id="anomalyError" class="alert alert-danger d-none" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="anomalyErrorMsg"></span>
+                </div>
+                <div id="anomalyList" class="row g-3"></div>
+                <div id="noAnomalies" class="text-center py-5 d-none">
+                    <i class="fas fa-check-circle text-success fs-1 mb-3"></i>
+                    <p class="text-muted">No anomalies detected yet. The system is running smoothly!</p>
+                </div>
+            </div>
+
+            <!-- Live Video Feed Tab -->
+            <div class="tab-pane fade" id="live-feed" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3><i class="fas fa-camera me-2 text-info"></i>Live Stream from V380 Camera</h3>
+                </div>
+                <div class="card">
+                    <div class="card-body text-center p-4">
+                        <div id="videoLoading" class="py-4">
+                            <div class="spinner-border text-info" role="status">
+                                <span class="visually-hidden">Connecting...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Connecting to RPi stream...</p>
+                        </div>
+                        <img id="liveVideo" src="" class="img-fluid rounded shadow" alt="Live Video Feed" style="max-height: 600px; display: none;">
+                        <div id="videoError" class="alert alert-danger mt-3 d-none" role="alert">
+                            <i class="fas fa-video-slash me-2"></i>
+                            <span id="videoErrorMsg"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 text-center text-muted">
+                    <small>Stream powered by OpenCV on Raspberry Pi 4. Anomalies overlaid in real-time.</small>
+                </div>
+            </div>
+
+            <!-- Blockchain Logs Tab -->
+            <div class="tab-pane fade" id="blockchain-logs" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3><i class="fas fa-database me-2 text-success"></i>Immutable Logs on Sepolia</h3>
+                    <button id="refreshBlockchain" class="btn btn-outline-success">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                </div>
+                <div id="blockchainLoading" class="text-center py-4">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Querying Sepolia blockchain...</p>
+                </div>
+                <div id="blockchainError" class="alert alert-danger d-none" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="blockchainErrorMsg"></span>
+                </div>
+                <div id="blockchainCount" class="mb-3 text-center"></div>
+                <div id="blockchainList" class="table-responsive"></div>
+                <div id="noBlockchainLogs" class="text-center py-5 d-none">
+                    <i class="fas fa-lock text-success fs-1 mb-3"></i>
+                    <p class="text-muted">No logs on blockchain yet. Anomalies will be logged immutably here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@4.0.3/dist/web3.min.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
