@@ -28,6 +28,7 @@ function updateStats(anomalyCount = 0, blockchainCount = 0) {
 }
 
 // Anomaly Log Functionsasync function fetchAnomalies() {
+async function fetchAnomalies() {
     const loading = document.getElementById('anomalyLoading');
     const list = document.getElementById('anomalyList');
     const error = document.getElementById('anomalyError');
