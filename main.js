@@ -67,25 +67,34 @@ async function fetchAnomalies() {
         }
 
         data.history.forEach((item) => {
-            const col = document.createElement('div');
-            col.className = 'col-md-6 col-lg-4';
-            col.innerHTML = `
-                <div class="card anomaly-card h-100">
-                    <img src="${RPI_BASE_URL}/api/rpi/image/${encodeURIComponent(item.filename || item.frame_path.split('/').pop())}" 
-                         class="card-img-top" alt="Anomaly Frame" loading="lazy" 
-                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg=='">
-                    <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted">${item.timestamp}</h6>
-                        <p class="card-text">
-                            <strong>Score:</strong> <span class="badge ${item.status === 'ANOMALY' ? 'bg-danger' : 'bg-success'}">${item.score}</span><br>
-                            <strong>Status:</strong> ${item.status}<br>
-                            <strong>Hash:</strong> ${item.frame_hash.substring(0, 16)}...
-                        </p>
-                    </div>
-                </div>
-            `;
-            list.appendChild(col);
-        });
+    // Skip entries with missing or invalid frame_path/filename
+    if (!item.frame_path && !item.filename) {
+        console.warn('Skipping anomaly entry with missing frame_path/filename:', item);
+        return;
+    }
+
+    const imageName = item.filename || (item.frame_path ? item.frame_path.split('/').pop() : '');
+    const imageUrl = imageName ? `${RPI_BASE_URL}/api/rpi/image/${encodeURIComponent(imageName)}` : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+
+    const col = document.createElement('div');
+    col.className = 'col-md-6 col-lg-4';
+    col.innerHTML = `
+        <div class="card anomaly-card h-100">
+            <img src="${imageUrl}" 
+                 class="card-img-top" alt="Anomaly Frame" loading="lazy" 
+                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEImYWdlPC90ZXh0Pjwvc3ZnPg=='">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">${item.timestamp}</h6>
+                <p class="card-text">
+                    <strong>Score:</strong> <span class="badge ${item.status === 'ANOMALY' ? 'bg-danger' : 'bg-success'}">${item.score}</span><br>
+                    <strong>Status:</strong> ${item.status}<br>
+                    <strong>Hash:</strong> ${item.frame_hash ? item.frame_hash.substring(0, 16) : 'N/A'}...
+                </p>
+            </div>
+        </div>
+    `;
+    list.appendChild(col);
+});
     } catch (err) {
         errorMsg.textContent = `Failed to fetch anomalies: ${err.message}`;
         error.classList.remove('d-none');
