@@ -91,6 +91,28 @@ header h1 {
         font-size: 2.5rem;
     }
     #liveVideo {
-        max-height: 400px;
+        max-width: 100vw; /* Full width on small screens */
+        margin: 0 -1rem; /* Edge-to-edge */
     }
+}
+
+/* Live Video Enhancements */
+#live-feed .card-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers the video horizontally */
+    justify-content: center;
+}
+
+#liveVideo {
+    width: 100%;
+    max-width: 90vw; /* Wider: 90% of viewport width, responsive */
+    height: auto;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transition: var(--transition);
+}
+
+#liveVideo:hover {
+    transform: scale(1.02); /* Subtle zoom on hover */
 }
