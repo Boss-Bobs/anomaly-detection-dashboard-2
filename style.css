@@ -8,7 +8,6 @@
     --glass-bg: rgba(255, 255, 255, 0.25);
     --glass-border: rgba(255, 255, 255, 0.18);
     --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -61,7 +60,6 @@ header .lead {
     box-shadow: var(--card-shadow);
     max-width: 800px;
     width: 100%;
-    animation: fadeInUp 0.8s ease-out;
 }
 
 .hero-icon {
@@ -94,7 +92,6 @@ header .lead {
     border-radius: 15px;
     padding: 1.5rem;
     text-align: center;
-    transition: var(--transition);
     color: white;
 }
 
@@ -132,7 +129,6 @@ header .lead {
     border-radius: 50px;
     font-weight: 500;
     cursor: pointer;
-    transition: var(--transition);
     box-shadow: var(--card-shadow);
 }
 
@@ -153,7 +149,7 @@ header .lead {
     border-radius: 20px;
     border: none;
     margin: 2vh auto;
-    animation: slideInScale 0.4s ease-out;
+    animation: none;  /* No entrance animation */
 }
 
 .glass-card {
@@ -204,15 +200,9 @@ header .lead {
     font-weight: 500;
 }
 
-/* Animations */
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideInScale {
-    from { opacity: 0; transform: scale(0.9) translateY(-20px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+.btn-close-white {
+    filter: invert(1);
+    opacity: 0.8;
 }
 
 /* Responsive */
