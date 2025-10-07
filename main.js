@@ -102,16 +102,21 @@ function setupLiveFeed() {
     const error = document.getElementById('videoError');
     const errorMsg = document.getElementById('videoErrorMsg');
 
-    if (video.src) return;  // Already set up
+    if (video.src) return;
 
-    video.src = `${RPI_BASE_URL}/video_feed`;
+    const streamUrl = `${RPI_BASE_URL}/video_feed?ngrok-skip-browser-warning=true`;  // Append bypass
+    video.src = streamUrl;
+    console.log('Stream URL set to:', streamUrl);  // Debug
+
     video.onload = () => {
+        console.log('Video loaded successfully');  // Debug
         loading.classList.add('d-none');
         video.style.display = 'block';
     };
-    video.onerror = () => {
+    video.onerror = (e) => {
+        console.error('Video load error:', e);  // Debug full error
         loading.classList.add('d-none');
-        errorMsg.textContent = `Stream failed: Check RPi/ngrok at ${RPI_BASE_URL}`;
+        errorMsg.textContent = `Stream failed (check console): ${RPI_BASE_URL}/video_feed`;
         error.classList.remove('d-none');
     };
 }
