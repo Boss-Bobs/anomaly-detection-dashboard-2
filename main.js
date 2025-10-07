@@ -21,7 +21,12 @@ async function initWeb3() {
     return await web3.eth.getChainId() === 11155111; // Sepolia chain ID
 }
 
-// Anomaly Log Functions
+// Update Hero Stats
+function updateStats(anomalyCount = 0, blockchainCount = 0) {
+    document.getElementById('totalAnomalies').textContent = anomalyCount;
+    document.getElementById('totalLogs').textContent = blockchainCount;
+}
+
 // Anomaly Log Functions
 async function fetchAnomalies() {
     const loading = document.getElementById('anomalyLoading');
@@ -53,7 +58,10 @@ async function fetchAnomalies() {
         const data = await response.json();
         if (!data.success) throw new Error(data.error || 'Unknown error');
 
-        if (data.history.length === 0) {
+        const anomalyCount = data.history.length;
+        updateStats(anomalyCount);  // Update hero stat
+
+        if (anomalyCount === 0) {
             noAnomalies.classList.remove('d-none');
             return;
         }
@@ -86,12 +94,15 @@ async function fetchAnomalies() {
         loading.classList.add('d-none');
     }
 }
+
 // Live Video Feed Functions
 function setupLiveFeed() {
     const video = document.getElementById('liveVideo');
     const loading = document.getElementById('videoLoading');
     const error = document.getElementById('videoError');
     const errorMsg = document.getElementById('videoErrorMsg');
+
+    if (video.src) return;  // Already set up
 
     video.src = `${RPI_BASE_URL}/video_feed`;
     video.onload = () => {
@@ -121,15 +132,17 @@ async function fetchBlockchainLogs() {
 
     try {
         const count = await contract.methods.getAnomalyCount().call();
-        countEl.innerHTML = `<h5 class="text-success"><i class="fas fa-lock me-2"></i>Total Logs: ${count}</h5>`;
+        const blockchainCount = Number(count);
+        countEl.innerHTML = `<h5 class="text-success"><i class="fas fa-lock me-2"></i>Total Logs: ${blockchainCount}</h5>`;
+        updateStats(document.getElementById('totalAnomalies').textContent, blockchainCount);  // Update hero stat
 
-        if (count === '0') {
+        if (blockchainCount === 0) {
             noLogs.classList.remove('d-none');
             return;
         }
 
         let logs = [];
-        for (let i = 0; i < Number(count); i++) {
+        for (let i = 0; i < blockchainCount; i++) {
             const anomaly = await contract.methods.getAnomaly(i).call();
             logs.push({
                 index: i,
@@ -169,21 +182,50 @@ async function fetchBlockchainLogs() {
 // Event Listeners
 document.addEventListener('DOMContentLoaded', async () => {
     await initWeb3();
-    fetchAnomalies();
-    setupLiveFeed();
-    fetchBlockchainLogs();
+    fetchAnomalies();  // Initial load for stats
+    fetchBlockchainLogs();  // Initial load for stats
 
-    // Manual refreshes
-    document.getElementById('refreshAnomaly').addEventListener('click', fetchAnomalies);
-    document.getElementById('refreshBlockchain').addEventListener('click', fetchBlockchainLogs);
+    // Tab button clicks: Open modals
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.dataset.target;
+            const modalElement = document.getElementById(targetId);
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
 
-    // Auto-poll
-    setInterval(fetchAnomalies, POLL_INTERVAL);
-    setInterval(fetchBlockchainLogs, POLL_INTERVAL);
-
-    // Tab change: Setup live feed only when tab is shown
-    const liveTab = new bootstrap.Tab(document.getElementById('live-feed-tab'));
-    document.getElementById('live-feed-tab').addEventListener('shown.bs.tab', () => {
-        if (!document.getElementById('liveVideo').src) setupLiveFeed();
+            // Load content on modal open
+            modalElement.addEventListener('shown.bs.modal', () => {
+                if (targetId === 'live-feed-modal') {
+                    setupLiveFeed();  // Setup video only when opened
+                } else if (targetId === 'anomaly-log-modal') {
+                    fetchAnomalyInModal();  // Fetch fresh data
+                } else if (targetId === 'blockchain-logs-modal') {
+                    fetchBlockchainInModal();  // Fetch fresh data
+                }
+            }, { once: true });  // Run once per open
+        });
     });
+
+    // Manual refreshes (inside modals)
+    document.getElementById('refreshAnomaly').addEventListener('click', () => {
+        fetchAnomalyInModal();  // Wrapper to update stats too
+    });
+    document.getElementById('refreshBlockchain').addEventListener('click', () => {
+        fetchBlockchainInModal();  // Wrapper to update stats too
+    });
+
+    // Auto-poll (runs in background, updates stats)
+    setInterval(() => {
+        fetchAnomalies();  // Just for stats—no modal needed
+        fetchBlockchainLogs();  // Just for stats—no modal needed
+    }, POLL_INTERVAL);
 });
+
+// Wrapper functions for modal refreshes (update stats)
+async function fetchAnomalyInModal() {
+    await fetchAnomalies();
+}
+
+async function fetchBlockchainInModal() {
+    await fetchBlockchainLogs();
+}
