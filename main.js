@@ -104,17 +104,17 @@ function setupLiveFeed() {
 
     if (video.src) return;
 
-    const streamUrl = `${RPI_BASE_URL}/video_feed?ngrok-skip-browser-warning=true`;  // Append bypass
+    const streamUrl = `${RPI_BASE_URL}/video_feed?ngrok-skip-browser-warning=true`;
     video.src = streamUrl;
     console.log('Stream URL set to:', streamUrl);  // Debug
 
     video.onloadeddata = () => {
-    console.log('Video stream loaded successfully');
-    loading.classList.add('d-none');
-    video.style.display = 'block';
-};
+        console.log('Video stream loaded successfully');
+        loading.classList.add('d-none');
+        video.style.display = 'block';
+    };
     video.onerror = (e) => {
-        console.error('Video load error:', e);  // Debug full error
+        console.error('Video load error:', e);
         loading.classList.add('d-none');
         errorMsg.textContent = `Stream failed (check console): ${RPI_BASE_URL}/video_feed`;
         error.classList.remove('d-none');
