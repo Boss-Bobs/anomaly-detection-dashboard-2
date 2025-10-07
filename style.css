@@ -232,3 +232,16 @@ header .lead {
         border-radius: 15px;
     }
 }
+
+#liveVideo {
+    display: block; /* Override inline display: none */
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 100%; /* Ensure it fits within the modal */
+    max-height: 70vh; /* Match modal-body's max-height to prevent overflow */
+    object-fit: contain; /* Ensure the image scales without distortion */
+}
+
+.modal-body {
+    overflow-y: hidden !important; /* Disable vertical scrolling */
+}
