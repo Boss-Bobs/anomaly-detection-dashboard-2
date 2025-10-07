@@ -242,6 +242,14 @@ header .lead {
     object-fit: contain; /* Ensure the image scales without distortion */
 }
 
-.modal-body {
-    overflow-y: hidden !important; /* Disable vertical scrolling */
+#live-feed-modal .modal-body {
+    overflow-y: hidden !important; /* Disable scrolling for Live Video Feed modal */
+}
+
+#blockchain-modal .modal-body {
+    overflow-y: auto !important; /* Enable scrolling for Blockchain Logs modal */
+}
+
+#anomaly-modal .modal-body {
+    overflow-y: auto !important; /* Enable scrolling for Anomaly Log modal */
 }
