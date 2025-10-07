@@ -4,111 +4,154 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anomaly Detection Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="style.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container-fluid py-4">
-        <header class="text-center mb-5">
-            <h1 class="display-4 fw-bold text-primary mb-3">
+    <div class="dashboard-wrapper">
+        <!-- Header -->
+        <header class="text-center mb-4">
+            <h1 class="display-4 fw-bold mb-3">
                 <i class="fas fa-bug me-2"></i>Anomaly Detection Dashboard
             </h1>
             <p class="lead text-muted">Live V380 Camera Feed with 3DCAE Detection & Sepolia Blockchain Logging</p>
         </header>
 
-        <ul class="nav nav-tabs justify-content-center mb-4" id="dashboardTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="anomaly-log-tab" data-bs-toggle="tab" data-bs-target="#anomaly-log" type="button" role="tab">
-                    <i class="fas fa-list me-1"></i>Anomaly Log
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="live-feed-tab" data-bs-toggle="tab" data-bs-target="#live-feed" type="button" role="tab">
-                    <i class="fas fa-video me-1"></i>Live Video Feed (RPi)
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="blockchain-logs-tab" data-bs-toggle="tab" data-bs-target="#blockchain-logs" type="button" role="tab">
-                    <i class="fas fa-blockchain me-1"></i>Blockchain Logs
-                </button>
-            </li>
-        </ul>
-
-        <div class="tab-content" id="dashboardTabContent">
-            <!-- Anomaly Log Tab -->
-            <div class="tab-pane fade show active" id="anomaly-log" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3><i class="fas fa-history me-2 text-warning"></i>Recent Anomalies</h3>
-                    <button id="refreshAnomaly" class="btn btn-outline-primary">
-                        <i class="fas fa-sync-alt me-1"></i>Refresh
-                    </button>
-                </div>
-                <div id="anomalyLoading" class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
+        <!-- Welcome Hero (Default Centered View) -->
+        <section id="welcome-hero" class="hero-section text-center">
+            <div class="hero-content">
+                <i class="fas fa-shield-alt hero-icon"></i>
+                <h2 class="mb-3">Welcome to Your Secure Dashboard</h2>
+                <p class="mb-4 text-muted">Click a tab below to explore live feeds, anomalies, or blockchain logs.</p>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-bolt text-warning"></i>
+                        <span id="totalAnomalies">0</span>
+                        <small>Anomalies Detected</small>
                     </div>
-                    <p class="mt-2">Fetching anomalies from RPi...</p>
-                </div>
-                <div id="anomalyError" class="alert alert-danger d-none" role="alert">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <span id="anomalyErrorMsg"></span>
-                </div>
-                <div id="anomalyList" class="row g-3"></div>
-                <div id="noAnomalies" class="text-center py-5 d-none">
-                    <i class="fas fa-check-circle text-success fs-1 mb-3"></i>
-                    <p class="text-muted">No anomalies detected yet. The system is running smoothly!</p>
+                    <div class="stat-card">
+                        <i class="fas fa-lock text-success"></i>
+                        <span id="totalLogs">0</span>
+                        <small>Blockchain Logs</small>
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <!-- Live Video Feed Tab -->
-            <div class="tab-pane fade" id="live-feed" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3><i class="fas fa-camera me-2 text-info"></i>Live Stream from V380 Camera</h3>
+        <!-- Tab Buttons (Centered) -->
+        <div class="tab-buttons text-center">
+            <button class="tab-btn" data-target="anomaly-log-modal">
+                <i class="fas fa-list me-2"></i>Anomaly Log
+            </button>
+            <button class="tab-btn" data-target="live-feed-modal">
+                <i class="fas fa-video me-2"></i>Live Video Feed (RPi)
+            </button>
+            <button class="tab-btn" data-target="blockchain-logs-modal">
+                <i class="fas fa-blockchain me-2"></i>Blockchain Logs
+            </button>
+        </div>
+    </div>
+
+    <!-- Anomaly Log Overlay Modal -->
+    <div class="modal fade overlay-modal" id="anomaly-log-modal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content glass-card">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-history me-2 text-warning"></i>Recent Anomalies
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="card">
-                    <div class="card-body text-center p-4">
-                        <div id="videoLoading" class="py-4">
-                            <div class="spinner-border text-info" role="status">
-                                <span class="visually-hidden">Connecting...</span>
-                            </div>
-                            <p class="mt-2 text-muted">Connecting to RPi stream...</p>
-                        </div>
-                        <img id="liveVideo" src="" class="img-fluid rounded shadow" alt="Live Video Feed" style="max-height: 600px; display: none;">
-                        <div id="videoError" class="alert alert-danger mt-3 d-none" role="alert">
-                            <i class="fas fa-video-slash me-2"></i>
-                            <span id="videoErrorMsg"></span>
-                        </div>
+                <div class="modal-body p-0">
+                    <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                        <small class="text-muted">Fetched from RPi</small>
+                        <button id="refreshAnomaly" class="btn btn-outline-warning btn-sm">
+                            <i class="fas fa-sync-alt me-1"></i>Refresh
+                        </button>
                     </div>
-                </div>
-                <div class="mt-3 text-center text-muted">
-                    <small>Stream powered by OpenCV on Raspberry Pi 4. Anomalies overlaid in real-time.</small>
+                    <div id="anomalyLoading" class="text-center py-4 d-none">
+                        <div class="spinner-border text-warning" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Fetching anomalies...</p>
+                    </div>
+                    <div id="anomalyError" class="alert alert-danger d-none mx-3 mt-3" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="anomalyErrorMsg"></span>
+                    </div>
+                    <div id="anomalyList" class="row g-3 p-3"></div>
+                    <div id="noAnomalies" class="text-center py-5 d-none">
+                        <i class="fas fa-check-circle text-success fs-1 mb-3"></i>
+                        <p class="text-muted">No anomalies detected yet.</p>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Blockchain Logs Tab -->
-            <div class="tab-pane fade" id="blockchain-logs" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3><i class="fas fa-database me-2 text-success"></i>Immutable Logs on Sepolia</h3>
-                    <button id="refreshBlockchain" class="btn btn-outline-success">
-                        <i class="fas fa-sync-alt me-1"></i>Refresh
-                    </button>
+    <!-- Live Video Feed Overlay Modal -->
+    <div class="modal fade overlay-modal" id="live-feed-modal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content glass-card">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-camera me-2 text-info"></i>Live Stream from V380 Camera
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div id="blockchainLoading" class="text-center py-4">
-                    <div class="spinner-border text-success" role="status">
-                        <span class="visually-hidden">Loading...</span>
+                <div class="modal-body text-center p-3">
+                    <div id="videoLoading" class="py-4 d-none">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Connecting...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Connecting to RPi stream...</p>
                     </div>
-                    <p class="mt-2">Querying Sepolia blockchain...</p>
+                    <img id="liveVideo" src="" class="img-fluid rounded shadow" alt="Live Video Feed" style="display: none;">
+                    <div id="videoError" class="alert alert-danger mt-3 d-none" role="alert">
+                        <i class="fas fa-video-slash me-2"></i>
+                        <span id="videoErrorMsg"></span>
+                    </div>
+                    <small class="text-muted d-block mt-2">Anomalies overlaid in real-time on Raspberry Pi.</small>
                 </div>
-                <div id="blockchainError" class="alert alert-danger d-none" role="alert">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <span id="blockchainErrorMsg"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blockchain Logs Overlay Modal -->
+    <div class="modal fade overlay-modal" id="blockchain-logs-modal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content glass-card">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-database me-2 text-success"></i>Immutable Logs on Sepolia
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div id="blockchainCount" class="mb-3 text-center"></div>
-                <div id="blockchainList" class="table-responsive"></div>
-                <div id="noBlockchainLogs" class="text-center py-5 d-none">
-                    <i class="fas fa-lock text-success fs-1 mb-3"></i>
-                    <p class="text-muted">No logs on blockchain yet. Anomalies will be logged immutably here.</p>
+                <div class="modal-body p-0">
+                    <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                        <small class="text-muted">Queried via Infura</small>
+                        <button id="refreshBlockchain" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-sync-alt me-1"></i>Refresh
+                        </button>
+                    </div>
+                    <div id="blockchainLoading" class="text-center py-4 d-none">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Querying blockchain...</p>
+                    </div>
+                    <div id="blockchainError" class="alert alert-danger d-none mx-3 mt-3" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="blockchainErrorMsg"></span>
+                    </div>
+                    <div id="blockchainCount" class="p-3 text-center border-bottom"></div>
+                    <div id="blockchainList" class="p-3"></div>
+                    <div id="noBlockchainLogs" class="text-center py-5 d-none">
+                        <i class="fas fa-lock text-success fs-1 mb-3"></i>
+                        <p class="text-muted">No logs yet.</p>
+                    </div>
                 </div>
             </div>
         </div>
