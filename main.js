@@ -27,14 +27,14 @@ function updateStats(anomalyCount = 0, blockchainCount = 0) {
     document.getElementById('totalLogs').textContent = blockchainCount;
 }
 
-// Anomaly Log Functions
-async function fetchAnomalies() {
+// Anomaly Log Functionsasync function fetchAnomalies() {
     const loading = document.getElementById('anomalyLoading');
     const list = document.getElementById('anomalyList');
     const error = document.getElementById('anomalyError');
     const noAnomalies = document.getElementById('noAnomalies');
     const errorMsg = document.getElementById('anomalyErrorMsg');
 
+    // Ensure initial state
     loading.classList.remove('d-none');
     list.innerHTML = '';
     error.classList.add('d-none');
@@ -43,12 +43,11 @@ async function fetchAnomalies() {
     try {
         const response = await fetch(`${RPI_BASE_URL}/api/rpi/history`, {
             headers: {
-                'ngrok-skip-browser-warning': 'true'  // Bypass ngrok warning
+                'ngrok-skip-browser-warning': 'true'
             }
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         
-        // Check if response is HTML (error fallback)
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             const text = await response.text();
@@ -56,49 +55,61 @@ async function fetchAnomalies() {
         }
         
         const data = await response.json();
+        console.log('Anomaly data received:', data); // Debug raw data
         if (!data.success) throw new Error(data.error || 'Unknown error');
 
         const anomalyCount = data.history.length;
         updateStats(anomalyCount);  // Update hero stat
+        console.log('Anomaly count:', anomalyCount); // Debug count
 
         if (anomalyCount === 0) {
+            console.log('No anomalies to display');
             noAnomalies.classList.remove('d-none');
             return;
         }
 
-        data.history.forEach((item) => {
-    // Skip entries with missing or invalid frame_path/filename
-    if (!item.frame_path && !item.filename) {
-        console.warn('Skipping anomaly entry with missing frame_path/filename:', item);
-        return;
-    }
+        let validEntries = 0;
+        data.history.forEach((item, index) => {
+            // Validate required fields
+            if (!item.timestamp || !item.score || !item.status || (!item.frame_path && !item.filename)) {
+                console.warn(`Skipping invalid anomaly entry at index ${index}:`, item);
+                return;
+            }
 
-    const imageName = item.filename || (item.frame_path ? item.frame_path.split('/').pop() : '');
-    const imageUrl = imageName ? `${RPI_BASE_URL}/api/rpi/image/${encodeURIComponent(imageName)}` : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+            const imageName = item.filename || (item.frame_path ? item.frame_path.split('/').pop() : '');
+            const imageUrl = imageName ? `${RPI_BASE_URL}/api/rpi/image/${encodeURIComponent(imageName)}` : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
 
-    const col = document.createElement('div');
-    col.className = 'col-md-6 col-lg-4';
-    col.innerHTML = `
-        <div class="card anomaly-card h-100">
-            <img src="${imageUrl}" 
-                 class="card-img-top" alt="Anomaly Frame" loading="lazy" 
-                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEImYWdlPC90ZXh0Pjwvc3ZnPg=='">
-            <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">${item.timestamp}</h6>
-                <p class="card-text">
-                    <strong>Score:</strong> <span class="badge ${item.status === 'ANOMALY' ? 'bg-danger' : 'bg-success'}">${item.score}</span><br>
-                    <strong>Status:</strong> ${item.status}<br>
-                    <strong>Hash:</strong> ${item.frame_hash ? item.frame_hash.substring(0, 16) : 'N/A'}...
-                </p>
-            </div>
-        </div>
-    `;
-    list.appendChild(col);
-});
+            const col = document.createElement('div');
+            col.className = 'col-md-6 col-lg-4';
+            col.innerHTML = `
+                <div class="card anomaly-card h-100">
+                    <img src="${imageUrl}" 
+                         class="card-img-top" alt="Anomaly Frame" loading="lazy" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg=='">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">${item.timestamp || 'N/A'}</h6>
+                        <p class="card-text">
+                            <strong>Score:</strong> <span class="badge ${item.status === 'ANOMALY' ? 'bg-danger' : 'bg-success'}">${item.score || 'N/A'}</span><br>
+                            <strong>Status:</strong> ${item.status || 'N/A'}<br>
+                            <strong>Hash:</strong> ${item.frame_hash ? item.frame_hash.substring(0, 16) : 'N/A'}...
+                        </p>
+                    </div>
+                </div>
+            `;
+            list.appendChild(col);
+            validEntries++;
+        });
+
+        console.log(`Rendered ${validEntries} valid anomaly entries`);
+
+        if (validEntries === 0 && anomalyCount > 0) {
+            noAnomalies.classList.remove('d-none');
+            console.warn('No valid entries rendered despite non-zero anomaly count');
+        }
     } catch (err) {
         errorMsg.textContent = `Failed to fetch anomalies: ${err.message}`;
         error.classList.remove('d-none');
-        console.error('Fetch error:', err);  // For debugging
+        console.error('Fetch error:', err);
     } finally {
         loading.classList.add('d-none');
     }
