@@ -108,11 +108,11 @@ function setupLiveFeed() {
     video.src = streamUrl;
     console.log('Stream URL set to:', streamUrl);  // Debug
 
-    video.onload = () => {
-        console.log('Video loaded successfully');  // Debug
-        loading.classList.add('d-none');
-        video.style.display = 'block';
-    };
+    video.onloadeddata = () => {
+    console.log('Video stream loaded successfully');
+    loading.classList.add('d-none');
+    video.style.display = 'block';
+};
     video.onerror = (e) => {
         console.error('Video load error:', e);  // Debug full error
         loading.classList.add('d-none');
