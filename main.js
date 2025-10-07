@@ -106,24 +106,18 @@ function setupLiveFeed() {
 
     const streamUrl = `${RPI_BASE_URL}/video_feed?ngrok-skip-browser-warning=true`;
     video.src = streamUrl;
-    video.type = 'video/mjpeg'; // Explicitly set MIME type for MJPEG
     console.log('Stream URL set to:', streamUrl);
 
-    video.onloadeddata = () => {
-        console.log('Video stream loaded successfully');
+    video.onload = () => {
+        console.log('MJPEG stream loaded successfully');
         loading.classList.add('d-none');
         video.style.display = 'block';
         error.classList.add('d-none');
     };
     video.onerror = (e) => {
-        console.error('Video stream error:', e, 'URL:', streamUrl);
+        console.error('MJPEG stream error:', e, 'URL:', streamUrl);
         loading.classList.add('d-none');
-        errorMsg.textContent = `Failed to load stream: Check browser compatibility with MJPEG or server response. URL: ${streamUrl}`;
-        error.classList.remove('d-none');
-    };
-    video.onstalled = () => {
-        console.error('Video stream stalled:', streamUrl);
-        errorMsg.textContent = `Stream stalled: Possible network or server issue. URL: ${streamUrl}`;
+        errorMsg.textContent = `Failed to load MJPEG stream: Check browser compatibility or server response. URL: ${streamUrl}`;
         error.classList.remove('d-none');
     };
 }
